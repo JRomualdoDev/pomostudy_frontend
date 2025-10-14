@@ -1,34 +1,5 @@
 
-import { Component } from '@angular/core';
- 
-import { ZardButtonComponent } from '../shared/components/button/button.component';
-import { ZardSkeletonComponent } from '../shared/components/skeleton/skeleton.component';
-import { ContentComponent } from '../shared/components/layout/content.component';
-import { FooterComponent } from '../shared/components/layout/footer.component';
-import { HeaderComponent } from '../shared/components/layout/header.component';
-import { LayoutComponent } from '../shared/components/layout/layout.component';
-import { SidebarComponent, SidebarGroupComponent, SidebarGroupLabelComponent } from '../shared/components/layout/sidebar.component';
-import { RouterLink, RouterOutlet } from '@angular/router';
- 
-@Component({
-  selector: 'z-demo-layout-full',
-  // standalone: true,
-  imports: [
-    LayoutComponent,
-    HeaderComponent,
-    ContentComponent,
-    FooterComponent,
-    SidebarComponent,
-    SidebarGroupComponent,
-    SidebarGroupLabelComponent,
-    ZardButtonComponent,
-    ZardSkeletonComponent,
-    RouterLink,
-    RouterOutlet
-],
-  template: `
-    <!-- Fazer o layout ocupar toda a altura da viewport -->
-    <z-layout class="h-screen flex flex-col">
+<z-layout class="h-screen flex flex-col">
       <z-header>
         <div class="flex items-center justify-between w-full">
           <div class="font-semibold text-lg flex items-center">
@@ -58,7 +29,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
               </button>
               <button z-button zType="ghost" class="justify-start">
                 <i class="icon-layers mr-2"></i>
-                <a routerLink="task">Tasks</a>              
+                <a routerLink="/dashboard/task">Tasks</a>
               </button>
               <button z-button zType="ghost" class="justify-start">
                 <i class="icon-users mr-2"></i>
@@ -87,8 +58,3 @@ import { RouterLink, RouterOutlet } from '@angular/router';
         </z-layout>
       </z-layout>
     </z-layout>
-  `,
-})
-export class LayoutDemoFullComponent {
-  year = new Date().getFullYear();
-}

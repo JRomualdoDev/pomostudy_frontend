@@ -1,0 +1,66 @@
+<div class="app-center">
+  <div class="auth-card">
+    <header class="auth-header">
+        <div class="font-semibold text-lg flex items-center justify-center gap-2 mb-2">
+            <img src="pomostudy.svg" alt="Logo" width="32" height="32" class="mb-2"/>
+            <h1 class="auth-title">{{ title() }}</h1>
+        </div>
+        <p class="auth-sub">Create your account and start focusing with Pomodoro</p>
+        <z-divider class="auth-divider"></z-divider>
+    </header>
+
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="auth-form">
+        <!-- <z-form-field>
+            <label z-form-label zRequired>Username</label>
+            <z-form-control>
+                <input z-input type="text" placeholder="Choose a username" formControlName="username" />
+            </z-form-control>
+            <z-form-message zType="default">Username must be 3-20 characters long.</z-form-message>
+        </z-form-field> -->
+
+        <z-form-field>
+            <label z-form-label zRequired>Email</label>
+            <z-form-control>
+                <input z-input type="email" placeholder="Enter your email" formControlName="email" />
+                <z-form-message zType="error">
+                    @if (profileForm.get('email')?.touched && profileForm.get('email')?.invalid) {
+                      @if (profileForm.get('email')?.errors?.['required']) {
+                        <span>Email is required.</span>
+                      }
+                      @if (profileForm.get('email')?.errors?.['email']) {
+                        <span>Please enter a valid email address.</span>
+                      }
+                    }
+                </z-form-message>
+            </z-form-control>
+            <z-form-message zType="default"></z-form-message>
+        </z-form-field>
+
+        <z-form-field>
+            <label z-form-label zRequired>Password</label>
+            <z-form-control>
+                <input z-input type="password" placeholder="Create a password" formControlName="password" />
+                <z-form-message zType="error">
+                    @if (profileForm.get('password')?.touched && profileForm.get('password')?.invalid) {
+                      @if (profileForm.get('password')?.errors?.['required']) {
+                        <span>Password is required.</span>
+                      }
+                      @if (profileForm.get('password')?.errors?.['minlength']) {
+                        <span>Password must be at least 6 characters long.</span>
+                      }
+                    }
+                </z-form-message>
+            </z-form-control>
+            <z-form-message zType="default" class="flex items-center justify-center text-red-600">{{ error }}</z-form-message>
+        </z-form-field>
+
+        <div class="auth-actions">
+          <button z-button zType="default" type="submit" [disabled]="profileForm.invalid">Login</button>
+        </div>
+    </form>
+
+    <footer class="auth-foot">
+      <small>Dont have an account? <a routerLink="/login">Create Account</a></small>
+    </footer>
+  </div>
+</div>
