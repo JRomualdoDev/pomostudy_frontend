@@ -1,19 +1,32 @@
 import { Routes } from '@angular/router';
-import { LayoutDemoFullComponent } from './index';
-import { ZardDemoTableSimpleComponent } from './task/task';
 
 export const routes: Routes = [
-    { 
-        path: "index", 
-        component: LayoutDemoFullComponent,
-        title: "PomoStudy - Home",
+	{
+		path: '',
+		redirectTo: 'login',
+		pathMatch: 'full'
+	},
+	{
+		path: 'login',
+		loadComponent: () =>
+			import('./auth/login.component').then(m => m.LoginComponent),
+		title: 'PomoStudy - Login'
+	},
+	{
+		path: 'dashboard',
+		loadComponent: () =>
+			import('./dashboard/dashboard.component').then(m => m.DashboardComponent),
+		title: 'PomoStudy - Dashboard',
         children: [
             {
-                path: "task",
-                component: ZardDemoTableSimpleComponent,
-                title: "PomoStudy - Tasks"
+                path: 'task',
+                loadComponent: () => import('./task/task.component').then(m => m.ZardDemoTableSimpleComponent),
+                title: 'PomoStudy - Tasks'
             }
         ]
-    },
-    
+	},
+	{
+		path: '**',
+		redirectTo: 'login'
+	}
 ];
