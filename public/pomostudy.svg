@@ -1,0 +1,34 @@
+<svg width="256" height="256" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-labelledby="logoTitle" role="img">
+  <!-- 
+    Logotipo para PomoStudy
+    Design por Gemini
+    Conceito: Um tomate (Pomodoro) com um chapéu de formatura (Estudo)
+  -->
+  <title id="logoTitle">Logotipo do PomoStudy</title>
+  <desc>Um logotipo com um tomate vermelho usando um chapéu de formatura preto com uma borla amarela.</desc>
+
+  <g>
+    <!-- Corpo do Tomate -->
+    <!-- Um círculo simples para representar o tomate -->
+    <circle cx="50" cy="65" r="30" fill="#E14D43"/>
+
+    <!-- Folhas do Tomate (Sépala) -->
+    <!-- Uma forma de quatro folhas no topo do tomate -->
+    <path d="M50,38 C 45,33 55,33 50,38 C 55,43 55,33 50,38 C 55,43 45,43 50,38 C 45,43 45,33 50,38 Z" fill="#6B8E23"/>
+
+    <!-- Chapéu de Formatura (Capelo) -->
+    <g>
+      <!-- Tampo do Chapéu (Mortarboard) -->
+      <!-- Um losango para dar a perspectiva de um quadrado visto de cima -->
+      <path d="M50,22 L10,35 L50,48 L90,35 Z" fill="#333333"/>
+      
+      <!-- Botão no centro do chapéu -->
+      <circle cx="50" cy="35" r="3" fill="#FFD700"/>
+      
+      <!-- Borla (Tassel) -->
+      <!-- Uma linha curva para o cordão e um retângulo para a ponta -->
+      <path d="M50,35 C 60,35 75,40 78,55" stroke="#FFD700" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <rect x="74" y="55" width="8" height="12" rx="3" fill="#FFD700"/>
+    </g>
+  </g>
+</svg>
