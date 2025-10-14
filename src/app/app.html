@@ -1,27 +1,47 @@
-<form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="space-y-6 max-w-sm">
-    <z-form-field>
-        <label z-form-label zRequired>Username</label>
-        <z-form-control>
-            <input z-input type="text" placeholder="Choose a username" formControlName="username" />
-        </z-form-control>
-        <z-form-message zType="default">Username must be 3-20 characters long.</z-form-message>
-    </z-form-field>
 
-    <z-form-field>
-        <label z-form-label zRequired>Email</label>
-        <z-form-control>
-            <input z-input type="email" placeholder="Enter your email" formControlName="email" />
-        </z-form-control>
-        <z-form-message zType="default">We'll use this for account notifications.</z-form-message>
-    </z-form-field>
+<div class="app-center">
+  <div class="auth-card">
+    <header class="auth-header">
+        <div class="font-semibold text-lg flex items-center justify-center gap-2 mb-2">
+            <img src="pomostudy.svg" alt="Logo" width="32" height="32" class="mb-2"/>
+            <h1 class="auth-title">{{ title() }}</h1>
+        </div>
+        <p class="auth-sub">Create your account and start focusing with Pomodoro</p>
+        <z-divider class="auth-divider"></z-divider>
+    </header>
 
-    <z-form-field>
-        <label z-form-label zRequired>Password</label>
-        <z-form-control>
-            <input z-input type="password" placeholder="Create a password" formControlName="password" />
-        </z-form-control>
-        <z-form-message zType="default">Password must be at least 6 characters.</z-form-message>
-    </z-form-field>
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="auth-form">
+        <z-form-field>
+            <label z-form-label zRequired>Username</label>
+            <z-form-control>
+                <input z-input type="text" placeholder="Choose a username" formControlName="username" />
+            </z-form-control>
+            <z-form-message zType="default">Username must be 3-20 characters long.</z-form-message>
+        </z-form-field>
 
-    <button z-button zType="default" type="submit" [disabled]="profileForm.invalid">Create Account</button>
-</form>
+        <z-form-field>
+            <label z-form-label zRequired>Email</label>
+            <z-form-control>
+                <input z-input type="email" placeholder="Enter your email" formControlName="email" />
+            </z-form-control>
+            <z-form-message zType="default">We'll use this for account notifications.</z-form-message>
+        </z-form-field>
+
+        <z-form-field>
+            <label z-form-label zRequired>Password</label>
+            <z-form-control>
+                <input z-input type="password" placeholder="Create a password" formControlName="password" />
+            </z-form-control>
+            <z-form-message zType="default">Password must be at least 6 characters.</z-form-message>
+        </z-form-field>
+
+        <div class="auth-actions">
+          <button z-button zType="default" type="submit" [disabled]="profileForm.invalid">Create Account</button>
+        </div>
+    </form>
+
+    <footer class="auth-foot">
+      <small>Already have an account? <a routerLink="/login">Log In</a></small>
+    </footer>
+  </div>
+</div>
