@@ -1,0 +1,52 @@
+<div class="table-outer-container">
+<table z-table class="elegant-table">
+    <caption>
+        <!-- Category list -->
+    </caption>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Color</th>
+    </tr>
+    </thead>
+    <tbody>
+    @for (data of listOfData; track data.id) {
+        <tr>
+            <td>{{ data.id }}</td>
+            <td>{{ data.name }}</td>
+            <td>
+                <z-badge [zType]="'outline'" [style.background]="'#' + data.color" [style.width]="'60px'" [style.height]="'20px'" [style.display]="'flex'" [style.justifyContent]="'center'" [style.alignItems]="'center'">
+                  {{ data.color }}
+                </z-badge>
+            </td>
+        </tr>
+    }
+    </tbody>
+    <tfoot>
+    <tr>
+        <td colspan="4" style="padding: 0;">
+            <div style="display: flex; margin-top:12px; justify-content: center; align-items: center; width: 100%; overflow-x: auto;">
+                <z-pagination-content ariaLabel="Page navigation">
+                    <z-pagination-item>
+                        <z-pagination-previous (click)="goToPrevious()" />
+                    </z-pagination-item>
+                    @for (page of pages(); track page) {
+                        <z-pagination-item>
+                            <z-pagination-button
+                                [zActive]="page === currentPage() + 1"
+                                (click)="goToPage(page)">
+                                {{ page }}
+                            </z-pagination-button>
+                        </z-pagination-item>
+                    }
+                    <z-pagination-item>
+                        <z-pagination-next (click)="goToNext()" />
+                    </z-pagination-item>
+                </z-pagination-content>
+            </div>
+        </td>
+    </tr>
+    </tfoot>
+</table>
+</div>

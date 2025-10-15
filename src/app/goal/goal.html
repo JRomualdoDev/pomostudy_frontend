@@ -1,0 +1,77 @@
+<div class="table-outer-container">
+<table z-table class="elegant-table">
+    <caption>
+        <!-- Goal list -->
+    </caption>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Goal Value</th>
+        <th>Goal Actual</th>
+        <th>End Date</th>
+        <th>Active</th>
+    </tr>
+    </thead>
+    <tbody>
+    @for (data of listOfData; track data.id) {
+        <tr>
+            <td>{{ data.id }}</td>
+            <td>{{ data.title }}</td>
+            <td>{{ data.description }}</td>
+            <td>
+                <z-badge class="w-30 flex justify-center"
+                  [zType]="
+                    data.type === 'DAILY_TIME' ? 'secondary' :
+                    data.type === 'WEEKLY_TIME' ? 'outline' :
+                    data.type === 'POMODORO_DAILY' ? 'outline' :
+                    data.type === 'TASKS_COMPLETED' ? 'default' : 'default'
+                  ">
+                  {{
+                    data.type === 'DAILY_TIME' ? 'Daily Time' :
+                    data.type === 'WEEKLY_TIME' ? 'Weekly Time' :
+                    data.type === 'POMODORO_DAILY' ? 'Pomodoro Daily' :
+                    data.type === 'TASKS_COMPLETED' ? 'Tasks Completed' : data.type
+                  }}
+                </z-badge>
+            </td>
+            <td>{{ data.goalValue }}</td>
+            <td>{{ data.goalActual }}</td>
+            <td>{{ data.endDate ? (data.endDate | date:'MM/dd/yyyy') : '' }}</td>
+            <td>
+                <z-badge [zType]="data.active ? 'outline' : 'destructive'">
+                  {{ data.active ? 'Active' : 'Inactive' }}
+                </z-badge>
+            </td>
+        </tr>
+    }
+    </tbody>
+    <tfoot>
+    <tr>
+        <td colspan="8" style="padding: 0;">
+            <div style="display: flex; margin-top:12px; justify-content: center; align-items: center; width: 100%; overflow-x: auto;">
+                <z-pagination-content ariaLabel="Page navigation">
+                    <z-pagination-item>
+                        <z-pagination-previous (click)="goToPrevious()" />
+                    </z-pagination-item>
+                    @for (page of pages(); track page) {
+                        <z-pagination-item>
+                            <z-pagination-button
+                                [zActive]="page === currentPage() + 1"
+                                (click)="goToPage(page)">
+                                {{ page }}
+                            </z-pagination-button>
+                        </z-pagination-item>
+                    }
+                    <z-pagination-item>
+                        <z-pagination-next (click)="goToNext()" />
+                    </z-pagination-item>
+                </z-pagination-content>
+            </div>
+        </td>
+    </tr>
+    </tfoot>
+</table>
+</div>

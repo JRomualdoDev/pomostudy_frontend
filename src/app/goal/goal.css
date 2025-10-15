@@ -1,0 +1,97 @@
+.table-outer-container {
+  max-width: 100vw;
+  margin: 32px auto;
+  padding: 0 8px;
+  overflow-x: auto;
+}
+
+.elegant-table {
+  width: 100%;
+  min-width: 600px;
+  max-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: transparent;
+  font-size: 14px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.elegant-table th, .elegant-table td {
+  background: #fff;
+  border: none;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #222;
+  box-shadow: none;
+  vertical-align: middle;
+  max-width: 180px;
+  word-break: break-word;
+  border-radius: 0 !important;
+}
+
+.elegant-table thead tr:first-child th:first-child {
+  border-top-left-radius: 8px !important;
+}
+.elegant-table thead tr:first-child th:last-child {
+  border-top-right-radius: 8px !important;
+}
+
+.elegant-table th {
+  font-weight: 600;
+  background: #f7f7f8;
+  border-bottom: 2px solid #e5e7eb;
+  font-size: 15px;
+}
+
+.elegant-table tbody tr {
+  border-radius: 8px;
+  transition: box-shadow 0.2s, transform 0.2s;
+  box-shadow: none;
+  border: none;
+}
+
+.elegant-table tbody tr:hover td {
+  background: #f5faff;
+}
+
+.elegant-table td, .elegant-table th {
+  border-left: none;
+  border-right: none;
+}
+
+.elegant-table tbody td {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.elegant-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.elegant-table caption {
+  caption-side: top;
+  padding: 12px 0 6px 0;
+  font-size: 17px;
+  font-weight: 500;
+  color: #333;
+  text-align: left;
+  background: transparent;
+}
+
+.elegant-table tfoot td {
+  background: transparent;
+  border: none;
+  padding-top: 10px;
+}
+
+@media (max-width: 900px) {
+  .elegant-table {
+    min-width: 400px;
+    font-size: 13px;
+  }
+  .elegant-table th, .elegant-table td {
+    padding: 8px 6px;
+    font-size: 13px;
+    max-width: 120px;
+  }
+}
