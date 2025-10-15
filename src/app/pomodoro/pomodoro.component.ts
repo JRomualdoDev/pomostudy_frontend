@@ -3,8 +3,8 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 @Component({
   selector: 'app-pomodoro',
   standalone: true,
-  templateUrl: './pomodoro.component.html',
-  styleUrls: ['./pomodoro.component.css']
+  templateUrl: './pomodoro.html',
+  styleUrls: ['./pomodoro.css']
 })
 export class PomodoroComponent {
   @Input() task: any;
