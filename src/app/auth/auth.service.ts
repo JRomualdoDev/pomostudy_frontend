@@ -1,33 +1,28 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
 	private baseUrl = 'http://localhost:8080/api/auth';
 
+	constructor(private http: HttpClient) {}
+
 	// Attempts login; returns a Promise that resolves true on success, false on failure
 	async login(email: string, password: string): Promise<boolean> {
 		try {
-			const res = await fetch(`${this.baseUrl}/login`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email, password })
-			});
-			if (!res.ok) {
-				return false;
-			}
-			// expect JSON with token or user data
-			const data = await res.json();
-			// store token if provided (adjust property name if backend differs)
-			if (data?.token) {
-				localStorage.setItem('auth_token', data.token);
-			} else if (data?.id) {
-				// fallback: store a marker for logged-in user
-				localStorage.setItem('auth_user', JSON.stringify(data));
+			const res: any = await firstValueFrom(
+				this.http.post(`${this.baseUrl}/login`, { email, password })
+			);
+
+			if (res?.token) {
+				localStorage.setItem('auth_token', res.token);
+			} else if (res?.id) {
+				localStorage.setItem('auth_user', JSON.stringify(res));
 			}
 			return true;
 		} catch (err) {
-			// network or other error -> treat as failure
 			return false;
 		}
 	}
