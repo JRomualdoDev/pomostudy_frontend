@@ -1,4 +1,3 @@
-
 <z-layout class="h-screen flex flex-col">
       <z-header>
         <div class="flex items-center justify-between w-full">
@@ -13,6 +12,9 @@
             <button z-button zType="ghost" zSize="sm">
               <i class="icon-bell"></i>
             </button>
+            <button z-button zType="ghost" zSize="sm" (click)="logout()" title="Logout">
+              <i class="icon-log-out"></i>
+            </button>
           </div>
         </div>
       </z-header>
@@ -23,19 +25,39 @@
           <nav class="flex flex-col h-full gap-2 p-4">
             <z-sidebar-group>
               <z-sidebar-group-label>Menu</z-sidebar-group-label>
-              <button z-button zType="secondary" class="justify-start">
+              <button
+                z-button
+                [zType]="selectedMenu === 'dashboard' ? 'secondary' : 'ghost'"
+                class="justify-start w-full"
+                (click)="selectMenu('dashboard'); navigate('/dashboard/index')"
+              >
                 <i class="icon-house mr-2"></i>
-                <a routerLink="/dashboard">Dashboard</a>
+                Dashboard
               </button>
-              <button z-button zType="ghost" class="justify-start">
+              <button
+                z-button
+                [zType]="selectedMenu === 'task' ? 'secondary' : 'ghost'"
+                class="justify-start w-full"
+                (click)="selectMenu('task'); navigate('/dashboard/task')"
+              >
                 <i class="icon-layers mr-2"></i>
-                <a routerLink="/dashboard/task">Tasks</a>
+                Tasks
               </button>
-              <button z-button zType="ghost" class="justify-start">
+              <button
+                z-button
+                [zType]="selectedMenu === 'category' ? 'secondary' : 'ghost'"
+                class="justify-start w-full"
+                (click)="selectMenu('category'); navigate('/dashboard/category')"
+              >
                 <i class="icon-users mr-2"></i>
                 Categories
               </button>
-              <button z-button zType="ghost" class="justify-start">
+              <button
+                z-button
+                [zType]="selectedMenu === 'goals' ? 'secondary' : 'ghost'"
+                class="justify-start w-full"
+                (click)="selectMenu('goals'); navigate('/dashboard/goals')"
+              >
                 <i class="icon-calendar mr-2"></i>
                 Goals
               </button>
@@ -43,10 +65,9 @@
           </nav>
         </z-sidebar>
  
-        <!-- Área de conteúdo principal (direita) -->
         <z-layout class="flex-1 flex flex-col min-h-0">
           <z-content class="flex-1 overflow-auto min-h-0">
-            <div class="space-y-4 m-6 p-6">
+            <div class="space-y-4  p-4">
               <!-- <z-skeleton class="h-170 w-full"></z-skeleton> -->
               <router-outlet class="flex-1 min-h-0"></router-outlet>
             </div>
