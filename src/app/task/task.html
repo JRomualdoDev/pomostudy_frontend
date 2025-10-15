@@ -1,6 +1,7 @@
-<table z-table>
+<div class="table-outer-container">
+<table z-table class="elegant-table">
     <caption>
-    A list of your recent tasks.
+        <!-- A list of your recent tasks. -->
     </caption>
     <thead>
     <tr>
@@ -17,15 +18,72 @@
     <tbody>
     @for (data of listOfData; track data.id) {
         <tr>
-            <td>{{ data.categoryId }}</td>
-            <td class="font-medium">{{ data.name }}</td>
+            <td>{{ data.id }}</td>
+            <td class="">{{ data.name }}</td>
             <td>{{ data.description }}</td>
-            <td>{{ data.startDate }}</td>
-            <td>{{ data.endDate }}</td>
-            <td>{{ data.status }}</td>
-            <td>{{ data.priority }}</td>
+            <td>{{ data.startDate ? (data.startDate | date:'MM/dd/yyyy') : '' }}</td>
+            <td>{{ data.endDate ? (data.endDate | date:'MM/dd/yyyy') : '' }}</td>
+            <td>
+                <z-badge class="w-22 flex justify-center"
+                      [zType]="
+                        data.status === 'PENDING' ? 'outline' :
+                        data.status === 'IN_PROGRESS' ? 'secondary' :
+                        data.status === 'COMPLETED' ? 'default' :
+                        data.status === 'CANCELED' ? 'destructive' : 'destructive'
+                      ">
+                      {{
+                        data.status === 'PENDING' ? 'Pending' :
+                        data.status === 'IN_PROGRESS' ? 'In Progress' :
+                        data.status === 'COMPLETED' ? 'Completed' :
+                        data.status === 'CANCELED' ? 'Canceled' : data.status
+                      }}
+                </z-badge>
+            </td>
+            <td>
+                <z-badge class="w-22 flex justify-center"
+                  zShape="square"
+                  [zType]="
+                    data.priority === 'LOW' ? 'outline' :
+                    data.priority === 'MEDIUM' ? 'secondary' :
+                    data.priority === 'HIGH' ? 'destructive' : 'default'
+                  ">
+                  {{
+                    data.priority === 'LOW' ? 'Low' :
+                    data.priority === 'MEDIUM' ? 'Medium' :
+                    data.priority === 'HIGH' ? 'High' : data.priority
+                  }}
+                </z-badge>
+            </td>
             <td>{{ data.timeTotalLearning }}</td>
         </tr>
     }
     </tbody>
+    <tfoot>
+    <tr>
+        <td colspan="8" style="padding: 0;">
+            <div style="display: flex; margin-top:12px; justify-content: center; align-items: center; width: 100%; overflow-x: auto;">
+                <z-pagination-content ariaLabel="Page navigation">
+                    <z-pagination-item>
+                        <z-pagination-previous (click)="goToPrevious()" />
+                    </z-pagination-item>
+                
+                    @for (page of pages(); track page) {
+    <z-pagination-item>
+        <z-pagination-button
+            [zActive]="page === currentPage() + 1"
+            (click)="goToPage(page)">
+            {{ page }}
+        </z-pagination-button>
+    </z-pagination-item>
+}
+                
+                    <z-pagination-item>
+                        <z-pagination-next (click)="goToNext()" />
+                    </z-pagination-item>
+                </z-pagination-content>
+            </div>
+        </td>
+    </tr>
+    </tfoot>
 </table>
+</div>
