@@ -1,0 +1,45 @@
+<div class="pomodoro-popup-content">
+  <button class="pomodoro-close" (click)="close.emit()">&times;</button>
+  <div class="pomodoro-title">Focus</div>
+  <div class="pomodoro-timer">{{ minutes }}:{{ seconds }}</div>
+  <div class="pomodoro-scale">
+    <button (click)="setTime(15)" [class.active]="selectedTime === 15" title="15 minutes">
+      <span>15</span>
+      <i class="fa fa-clock-o" style="margin-left:4px;"></i>
+    </button>
+    <span style="flex:1"></span>
+    <button (click)="setTime(20)" [class.active]="selectedTime === 20" title="20 minutes">
+      <span>20</span>
+      <i class="fa fa-clock-o" style="margin-left:4px;"></i>
+    </button>
+    <span style="flex:1"></span>
+    <button (click)="setTime(25)" [class.active]="selectedTime === 25" title="25 minutes">
+      <span>25</span>
+      <i class="fa fa-clock-o" style="margin-left:4px;"></i>
+    </button>
+  </div>
+  <div class="pomodoro-controls">
+    <button class="pomodoro-play" (click)="start()" [disabled]="running" title="Start Timer">
+      <i class="fa fa-play"></i>
+    </button>
+    <button class="pomodoro-pause" (click)="pause()" [disabled]="!running" title="Pause Timer">
+      <i class="fa fa-pause"></i>
+    </button>
+    <button class="pomodoro-stop" (click)="stop()" title="Stop Timer">
+      <i class="fa fa-stop"></i>
+    </button>
+    <button class="pomodoro-reset" (click)="reset()" title="Reset Timer">
+      <i class="fa fa-refresh"></i>
+    </button>
+  </div>
+  <div class="pomodoro-bottom">
+    <div>
+      <div class="pomodoro-label">ROUND</div>
+      <div class="pomodoro-value">{{ round }}/{{ totalRounds }}</div>
+    </div>
+    <div>
+      <div class="pomodoro-label">GOAL</div>
+      <div class="pomodoro-value">{{ goal }}</div>
+    </div>
+  </div>
+</div>
