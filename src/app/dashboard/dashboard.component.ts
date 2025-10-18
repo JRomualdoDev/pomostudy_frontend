@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -10,6 +10,7 @@ import { LayoutComponent } from '../shared/components/layout/layout.component';
 import { SidebarComponent, SidebarGroupComponent, SidebarGroupLabelComponent } from '../shared/components/layout/sidebar.component';
 import { RouterOutlet } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { DarkModeService } from '@shared/services/darkmode.service';
 
 @Component({
 	selector: 'app-dashboard',
@@ -33,6 +34,8 @@ export class DashboardComponent {
     year = new Date().getFullYear();
     selectedMenu = 'dashboard';
 
+    private readonly darkmodeService = inject(DarkModeService);
+
     constructor(
         private router: Router,
         private authService: AuthService
@@ -43,6 +46,14 @@ export class DashboardComponent {
         else if (url.includes('/dashboard/category')) this.selectedMenu = 'category';
         else if (url.includes('/dashboard/goals')) this.selectedMenu = 'goals';
         else this.selectedMenu = 'dashboard';
+    }
+
+    toggleTheme(): void {
+        this.darkmodeService.toggleTheme();
+    }
+
+    getCurrentTheme(): 'light' | 'dark' {
+        return this.darkmodeService.getCurrentTheme();
     }
 
     selectMenu(menu: string) {

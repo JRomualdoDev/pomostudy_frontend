@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, OnInit, signal } from "@angular/core";
+import { Component, OnInit, AfterViewInit, signal, ViewChild } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { ZardFormModule } from "@shared/components/form/form.module";
 import { TaskService } from "../task/task.service";
@@ -9,7 +9,11 @@ import { ZardBadgeComponent } from '../shared/components/badge/badge.component';
 import { ZardSelectItemComponent } from "@shared/components/select/select-item.component";
 import { ZardSelectComponent } from "@shared/components/select/select.component";
 import { ZardPopoverComponent, ZardPopoverDirective } from "@shared/components/popover/popover.component";
-
+import { FullCalendarModule, FullCalendarComponent } from '@fullcalendar/angular';
+import { CalendarOptions, EventInput } from '@fullcalendar/core';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'index-task-form',
@@ -24,7 +28,8 @@ import { ZardPopoverComponent, ZardPopoverDirective } from "@shared/components/p
     ZardSelectItemComponent,
     ReactiveFormsModule,
     ZardPopoverComponent,
-    ZardPopoverDirective
+    ZardPopoverDirective,
+    FullCalendarModule
   ],
   templateUrl: './index.html',
   styleUrls: ['./index.css'],
@@ -58,6 +63,8 @@ export class IndexTaskFormComponent implements OnInit {
   loadingCategories = false;
   message = '';
   tasks: any[] = [];
+  taskPerMounth: any[] = [];
+
   selectedCategoryId: number | null = null;
   categoryTasks: any[] = [];
 
@@ -67,6 +74,33 @@ export class IndexTaskFormComponent implements OnInit {
   filteredTasks: any[] = [];
 
   dateError = false;
+
+  calendarEvents$ = new BehaviorSubject<any[]>([]);
+
+  @ViewChild('calendar') calendarComponent!: FullCalendarComponent;
+
+  calendarOptions: CalendarOptions = {
+    plugins: [dayGridPlugin, interactionPlugin],
+    initialView: 'dayGridMonth',
+    weekends: true,
+    editable: true,
+    selectable: true,
+    selectMirror: true,
+    dayMaxEvents: true,
+    events: () => this.eventsPromise,
+    headerToolbar: {
+      left: 'prev',
+      center: 'title',
+      right: 'next'
+    },
+    // Remove customButtons and keep only datesSet
+    datesSet: (dateInfo) => {
+      this.eventsPromise = this.loadTasksForMonth(dateInfo.view.currentStart);
+      // Do NOT call refetchEvents here, let FullCalendar handle it
+    }
+  };
+
+  eventsPromise: Promise<EventInput[]> = this.loadTasksForMonth(new Date());
 
   constructor(
     private taskService: TaskService,
@@ -100,6 +134,46 @@ export class IndexTaskFormComponent implements OnInit {
         this.uniqueCategories = [];
         this.loadingCategories = false;
       }
+    });
+
+    this.taskService.getTasks().subscribe({
+      next: (data) => {
+        this.tasks = Array.isArray(data.content) ? data.content : [];
+      },
+      error: () => {
+        this.tasks = [];
+      }
+    });
+  }
+
+  loadTasksForMonth(startDate: Date): Promise<EventInput[]> {
+    const year = startDate.getFullYear();
+    const month = startDate.getMonth() + 1;
+    const formattedMonth = String(month).padStart(2, '0');
+
+    const monthStr: string = `${year}-${formattedMonth}`;
+
+    return new Promise((resolve, reject) => {
+      this.taskService.getTasksByMonth(monthStr).subscribe({
+        next: (data) => {
+          const tasksMonth = Array.isArray(data.content) ? data.content : [];
+          console.log('Tasks for Month:', tasksMonth);
+
+          const events = tasksMonth.map((task: any) => ({
+              title: task.name,
+              date: task.startDate ? task.startDate.split('T')[0] : ''
+          }));
+
+          // Refetch calendar events after data loads
+          this.calendarComponent?.getApi().refetchEvents();
+          resolve(events);
+        },
+        error: (err) => {
+          this.taskPerMounth = [];
+          // this.calendarComponent?.getApi().refetchEvents();
+          reject(err);
+        }
+      });
     });
   }
 
@@ -207,6 +281,8 @@ export class IndexTaskFormComponent implements OnInit {
     if (!this.selectedCategoryId) {
       this.categoryTasks = [];
       this.filteredTasks = [];
+      this.calendarEvents$.next([]);
+      this.calendarComponent?.getApi().refetchEvents();
       return;
     }
     this.taskService.getTasksByCategory(this.selectedCategoryId).subscribe({
@@ -216,10 +292,18 @@ export class IndexTaskFormComponent implements OnInit {
         this.filteredTasks = this.categoryTasks
           .filter(task => task.status === 'IN_PROGRESS')
           .slice(0, 5);
+        // Update calendar events
+        this.calendarEvents$.next(this.filteredTasks.map(task => ({
+          title: task.name,
+          date: task.startDate ? task.startDate.split('T')[0] : ''
+        })));
+        this.calendarComponent?.getApi().refetchEvents();
       },
       error: () => {
         this.categoryTasks = [];
         this.filteredTasks = [];
+        this.calendarEvents$.next([]);
+        this.calendarComponent?.getApi().refetchEvents();
       }
     });
   }

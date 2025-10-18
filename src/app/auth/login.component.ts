@@ -35,7 +35,7 @@ export class LoginComponent {
 		const { email, password } = this.profileForm.value;
 		const ok = await this.auth.login(email, password);
 		if (ok) {		
-			this.router.navigate(['/dashboard']);
+			this.router.navigate(['/dashboard/index']);
 		} else {
 			// show inline error
 			this.error = 'Invalid credentials';
