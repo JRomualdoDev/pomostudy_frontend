@@ -32,7 +32,7 @@
       </z-header>
  
       <z-layout class="flex-1 flex min-h-0">
-        <z-sidebar [zWidth]="200" class="!p-0 h-full">
+        <z-sidebar [zWidth]="200" class="!p-0 h-full sidebar">
           <nav class="flex flex-col h-full gap-2 p-4">
             <z-sidebar-group>
               <z-sidebar-group-label>Menu</z-sidebar-group-label>
@@ -44,6 +44,15 @@
               >
                 <i class="icon-house mr-2"></i>
                 Dashboard
+              </button>
+              <button
+                z-button
+                [zType]="selectedMenu === 'daily' ? 'secondary' : 'ghost'"
+                class="justify-start w-full"
+                (click)="selectMenu('daily'); navigate('/dashboard/daily')"
+              >
+                <i class="fa fa-sun mr-2"></i>
+                Daily
               </button>
               <button
                 z-button
