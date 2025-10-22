@@ -26,6 +26,11 @@ export const routes: Routes = [
 					title: 'PomoStudy - Dashboard'
 				},
 				{
+					path: 'daily',
+					loadComponent: () => import('./daily/daily.component').then(m => m.DailyComponent),
+					title: 'PomoStudy - Daily'
+				},
+				{
 					path: 'task',
 					loadComponent: () => import('./task/task.component').then(m => m.ZardDemoTableSimpleComponent),
 					title: 'PomoStudy - Tasks'
