@@ -1,0 +1,149 @@
+<div class="daily-main-wrapper">
+  <div class="daily-main-content">
+    <div class="daily-header">
+      <div class="daily-header-left">
+        <span class="daily-title"><i class="fa fa-sun"></i> My Day</span>
+        <span class="daily-date">Monday, Oct 20</span>
+      </div>
+      <div class="daily-header-right">
+        <div class="daily-view-switch">
+          <span class="active">Grid</span>
+          <span>List</span>
+        </div>
+        <div class="daily-actions">
+          <span>Sort</span>
+          <span>Group</span>
+          <span>Suggestions</span>
+        </div>
+      </div>
+    </div>
+    <div class="daily-add-task-row">
+      <input 
+        class="daily-add-task-input" 
+        placeholder="Add a task" 
+        [(ngModel)]="newTaskTitle"
+        name="newTaskTitle"
+        (keyup.enter)="addTask()"
+      />
+      <button class="daily-add-btn" (click)="addTask()">Add</button>
+    </div>
+    <div class="daily-table">
+      <table class="elegant-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Total Learning Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Tasks not completed -->
+          <tr *ngFor="let task of tasks" [class.selected]="task === selectedTask" (click)="selectedTask = task">
+            <td>
+               <input type="checkbox" [checked]="task.completed" />
+            </td>
+            <td>{{ task.name }}</td>
+            <td>{{ task.description || '-' }}</td>
+            <td>{{ task.startDate || '-' }}</td>
+            <td>{{ task.endDate || '-' }}</td>
+            <td>
+              <span>
+                {{
+
+                  task.status === 'PENDING' ? 'Pending' :
+                  task.status === 'IN_PROGRESS' ? 'In Progress' :
+                  task.status === 'COMPLETED' ? 'Completed' :
+                  task.status === 'CANCELED' ? 'Canceled' : (task.status || '-')
+                }}
+              </span>
+            </td>
+            <td>
+              <span>
+                {{
+
+                  task.priority === 'LOW' ? 'Low' :
+                  task.priority === 'MEDIUM' ? 'Medium' :
+                  task.priority === 'HIGH' ? 'High' : (task.priority || '-')
+                }}
+              </span>
+            </td>
+            <td>{{ task.timeTotalLearning || '-' }}</td>
+          </tr>
+          <!-- Completed header -->
+          <tr class="daily-completed-header">
+            <td colspan="8">
+              <span
+                class="daily-chevron"
+                role="button"
+                tabindex="0"
+                (click)="showCompleted = !showCompleted"
+                (keydown.enter)="showCompleted = !showCompleted"
+                [attr.aria-expanded]="showCompleted"
+                [class.collapsed]="!showCompleted"
+                title="Toggle completed tasks"
+              >
+                {{ showCompleted ? '▼' : '▶' }}
+              </span>
+              <b>Completed</b> {{ completedTasks.length }}
+            </td>
+          </tr>
+          <!-- Completed tasks -->
+          <ng-container *ngIf="showCompleted">
+            <tr *ngFor="let task of completedTasks" class="daily-completed-row">
+              <td>
+                <input type="checkbox" checked />
+              </td>
+              <td>
+                <span class="daily-completed-text">{{ task.name }}</span>
+              </td>
+              <td>{{ task.description || '-' }}</td>
+              <td>{{ task.startDate || '-' }}</td>
+              <td>{{ task.endDate || '-' }}</td>
+              <td>
+                <span>
+                  {{
+
+                    task.status === 'PENDING' ? 'Pending' :
+                    task.status === 'IN_PROGRESS' ? 'In Progress' :
+                    task.status === 'COMPLETED' ? 'Completed' :
+                    task.status === 'CANCELED' ? 'Canceled' : (task.status || '-')
+                  }}
+                </span>
+              </td>
+              <td>
+                <span>
+                  {{
+
+                    task.priority === 'LOW' ? 'Low' :
+                    task.priority === 'MEDIUM' ? 'Medium' :
+                    task.priority === 'HIGH' ? 'High' : (task.priority || '-')
+                  }}
+                </span>
+              </td>
+              <td>{{ task.timeTotalLearning || '-' }}</td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="daily-sidebar">
+    <div class="daily-task-detail">
+      <div class="daily-task-title">
+        <input type="checkbox" [checked]="selectedTask.completed" />
+        <b>{{ selectedTask.name }}</b>
+        <i class="fa fa-star daily-star" [class.filled]="selectedTask.important"></i>
+      </div>
+      <div class="daily-task-actions">
+        <div><i class="fa fa-sync"></i> Repeats weekly <span class="daily-task-repeat">Tue, Thu & Sat</span></div>
+        <div><i class="fa fa-tag"></i> Choose a category</div>
+        <div><i class="fa fa-sticky-note"></i> Add note</div>
+      </div>
+    </div>
+  </div>
+</div>
