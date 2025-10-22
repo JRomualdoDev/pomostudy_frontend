@@ -56,7 +56,7 @@ export class IndexTaskFormComponent implements OnInit {
     color: '',
     icon: ''
   };
-
+showAdvanced: boolean = false;
   startDate = signal<Date | null>(null);
   endDate = signal<Date | null>(null);
 
@@ -81,6 +81,7 @@ export class IndexTaskFormComponent implements OnInit {
 
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
+    // themeSystem: 'bootstrap5',
     initialView: 'dayGridMonth',
     weekends: true,
     editable: true,
@@ -91,14 +92,19 @@ export class IndexTaskFormComponent implements OnInit {
     headerToolbar: {
       left: 'prev',
       center: 'title',
-      right: 'next'
+      right: 'next',
+    },
+    eventClick: (info) => {
+      console.log('Event clicked:', info.event);
+      this.onEventClick(info);
     },
     // Remove customButtons and keep only datesSet
     datesSet: (dateInfo) => {
       this.eventsPromise = this.loadTasksForMonth(dateInfo.view.currentStart);
-      // Do NOT call refetchEvents here, let FullCalendar handle it
     }
   };
+
+  selectedDayTasks: any[] = [];
 
   eventsPromise: Promise<EventInput[]> = this.loadTasksForMonth(new Date());
 
@@ -160,6 +166,7 @@ export class IndexTaskFormComponent implements OnInit {
           console.log('Tasks for Month:', tasksMonth);
 
           const events = tasksMonth.map((task: any) => ({
+              id: task.id, // Add task ID to event
               title: task.name,
               date: task.startDate ? task.startDate.split('T')[0] : ''
           }));
@@ -223,6 +230,8 @@ export class IndexTaskFormComponent implements OnInit {
   submitTask() {
     this.validateDates();
     if (this.dateError) return;
+
+    console.log("Submitting task:", this.task);
     const taskToSend = {
       ...this.task,
       startDate: this.formatDateToBackend(this.task.startDate),
@@ -236,11 +245,11 @@ export class IndexTaskFormComponent implements OnInit {
         if (this.tasks.length > 5) this.tasks = this.tasks.slice(0, 5);
         this.task = {
           name: '',
-          description: '',
-          startDate: '',
-          endDate: '',
-          status: '',
-          priority: '',
+          description: null,
+          startDate: null,
+          endDate: null,
+          status: null,
+          priority: null,
           timeTotalLearning: null,
           categoryId: null
         };
@@ -320,5 +329,24 @@ export class IndexTaskFormComponent implements OnInit {
 
   trackById(index: number, item: any) {
     return item.id;
+  }
+
+  onEventClick(info: any) {
+    const taskId = info.event.id;
+    this.taskService.getTaskById(taskId).subscribe({
+      next: (task) => {
+        this.selectedDayTasks = [task];
+        // Scroll to the table
+        setTimeout(() => {
+          const element = document.getElementById('selected-task-table');
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      },
+      error: () => {
+        this.selectedDayTasks = [];
+      }
+    });
   }
 }
