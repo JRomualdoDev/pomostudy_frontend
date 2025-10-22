@@ -11,17 +11,26 @@ export class TaskService {
 
 	constructor(private http: HttpClient) {}
 
-  getTasks(page: number = 1, size: number = 10): Observable<any> {
+  getTasks(page: number = 1, size: number = 10, sort: string = 'id,desc'): Observable<any> {
     const token = localStorage.getItem('auth_token');
     const headers = new HttpHeaders({
       Authorization: token ? `Bearer ${token}` : ''
     });
     const params = new HttpParams()
       .set('page', page)
-      .set('size', size);
+      .set('size', size)
+      .set('sort', sort);
 
     return this.http.get<any>(this.apiUrl, { headers, params });
   }
+
+  getTaskById(taskId: number): Observable<any> {
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders({
+      Authorization: token ? `Bearer ${token}` : ''
+    });
+    return this.http.get<any>(`${this.apiUrl}/${taskId}`, { headers });
+  }    
 
   getTasksByMonth(month: string, page: number = 1, size: number = 100): Observable<any> {
     const token = localStorage.getItem('auth_token');
@@ -37,6 +46,14 @@ export class TaskService {
   }
 
   createTask(task: any): Observable<any> {
+
+    Object.keys(task).forEach(key => {
+      if (task[key] === null || task[key] === undefined || task[key] === '') {
+        console.log(`Removing key: ${key} with value: ${task[key]}`);
+        delete task[key];
+      }
+    });
+
     const token = localStorage.getItem('auth_token');
     const headers = new HttpHeaders({
       Authorization: token ? `Bearer ${token}` : '',

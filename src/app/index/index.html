@@ -4,135 +4,175 @@
       <full-calendar #calendar [options]="calendarOptions" [events]="eventsPromise | async" style="height: 600px;"></full-calendar>
     </div>
     <div class="flex-1" style="padding-left: 16px;">
-      <form (ngSubmit)="submitTask()" autocomplete="off" class="task-form-horizontal">
-        <div class="form-row">
-          <z-form-field label="Name">
-            <input z-input class="input" name="name" [(ngModel)]="task.name" placeholder="Name" required />
-          </z-form-field>
-          <z-form-field label="Description">
-            <input z-input class="input" name="description" [(ngModel)]="task.description" placeholder="Description" />
-          </z-form-field>
-          <z-form-field label="Start Date">
-            <input z-input class="input" type="date" name="startDate" [(ngModel)]="task.startDate" placeholder="Start Date" style="min-width:220px;max-width:220px;" />
-          </z-form-field>
-          <z-form-field label="End Date">
-            <input z-input class="input" type="date" name="endDate" [(ngModel)]="task.endDate" placeholder="End Date" style="min-width:220px;max-width:220px;" />
-          </z-form-field>
-          <z-form-field label="Status">
-            <z-select 
-              zPlaceholder="Status" 
-              name="status" 
-              [(ngModel)]="task.status" 
-              required 
-              style="min-width:100px;max-width:100px;"
-            >
-              <z-select-item zValue="PENDING">Pending</z-select-item>
-              <z-select-item zValue="IN_PROGRESS">In Progress</z-select-item>
-              <z-select-item zValue="COMPLETED">Completed</z-select-item>
-              <z-select-item zValue="CANCELED">Canceled</z-select-item>
-            </z-select>
-          </z-form-field>
-          <z-form-field label="Priority">
-            <z-select zPlaceholder="Priority" name="priority" [(ngModel)]="task.priority" required style="min-width:100px;max-width:100px;">
-              <z-select-item zValue="LOW">Low</z-select-item>
-              <z-select-item zValue="MEDIUM">Medium</z-select-item>
-              <z-select-item zValue="HIGH">High</z-select-item>
-            </z-select>
-          </z-form-field>
-          <z-form-field label="Category">
-            <div class="flex items-center space-x-2">
-              @if (uniqueCategories.length > 0) {
-                <z-select 
-                  id="categoryId" 
-                  name="categoryId" 
-                  [(ngModel)]="task.categoryId"
-                  required 
-                  zPlaceholder="Categories" 
-                  style="min-width:120px;max-width:120px;"
-                >
-                  @for (cat of uniqueCategories; track cat.id) {
-                    <z-select-item [zValue]="cat.id">{{ cat.name }}</z-select-item>
+      <!-- Form section -->
+      <div class="form-section">
+        <form (ngSubmit)="submitTask()" autocomplete="off" class="task-form-horizontal">
+          <div class="form-header">
+            <h3 class="form-header-title">
+              <span class="form-header-icon"><i class="fa fa-info-circle"></i></span>
+              Fill in Name and Category to create a task
+            </h3>
+          </div>
+          <div class="form-row form-row-3">
+            <div class="form-col-horizontal">
+              <z-form-field label="Name">
+                <input z-input class="input form-input" name="name" [(ngModel)]="task.name" placeholder="Name" required />
+              </z-form-field>
+              <z-form-field label="Category">
+                <div class="flex items-center space-x-2">
+                  @if (uniqueCategories.length > 0) {
+                    <z-select 
+                      id="categoryId" 
+                      name="categoryId" 
+                      [(ngModel)]="task.categoryId"
+                      required 
+                      zPlaceholder="Categories" 
+                      class="form-input"
+                      required="true"
+                    >
+                      @for (cat of uniqueCategories; track cat.id) {
+                        <z-select-item [zValue]="cat.id">{{ cat.name }}</z-select-item>
+                      }
+                    </z-select>
+                  } @else {
+                    <div>Loading categories...</div>
                   }
-                </z-select>
-              } @else {
-                <div>Loading categories...</div>
-              }
-              <ng-template #categoryPopup>
-                <z-popover>
-                  <div class="category-popover-content" style="min-width:260px;max-width:340px;">
-                    <div class="category-popover-header">
-                      <h4>New Category</h4>
-                      <p>Add a new category below.</p>
-                    </div>
-                    <div class="category-popover-field">
-                      <label for="catName">Category Name</label>
-                      <input id="catName" z-input name="catName" [(ngModel)]="category.name" placeholder="Category Name" />
-                    </div>
-                    <div class="category-popover-field">
-                      <label for="catColor">Color (hex)</label>
-                      <input id="catColor" z-input name="catColor" [(ngModel)]="category.color" placeholder="Color (hex)" />
-                    </div>
-                    <div class="category-popover-field">
-                      <label for="catIcon">Icon</label>
-                      <input id="catIcon" z-input name="catIcon" [(ngModel)]="category.icon" placeholder="Icon (class or image)" />
-                    </div>
-                    <button type="button" z-button class="category-popover-btn" zSize="sm" (click)="submitCategory()">
-                      <i class="fa fa-save"></i> Save Category
-                    </button>
-                  </div>
-                </z-popover>
-              </ng-template>
-              <button 
-                type="button" 
-                z-button 
-                zPopover
-                zType="ghost" 
-                class="new-category-btn" 
-                title="Add Category"
-                [zContent]="categoryPopup"
-                #popoverTrigger
-              >
-                <i class="fa fa-circle-plus"></i>
-              </button>
+                  <ng-template #categoryPopup>
+                    <z-popover>
+                      <div class="category-popover-content" style="min-width:260px;max-width:340px;">
+                        <div class="category-popover-header">
+                          <h4>New Category</h4>
+                          <p>Add a new category below.</p>
+                        </div>
+                        <div class="category-popover-field">
+                          <label for="catName">Category Name</label>
+                          <input id="catName" z-input name="catName" [(ngModel)]="category.name" placeholder="Category Name" />
+                        </div>
+                        <div class="category-popover-field">
+                          <label for="catColor">Color (hex)</label>
+                          <input id="catColor" z-input name="catColor" [(ngModel)]="category.color" placeholder="Color (hex)" />
+                        </div>
+                        <div class="category-popover-field">
+                          <label for="catIcon">Icon</label>
+                          <input id="catIcon" z-input name="catIcon" [(ngModel)]="category.icon" placeholder="Icon (class or image)" />
+                        </div>
+                        <button type="button" z-button class="category-popover-btn" zSize="sm" (click)="submitCategory()">
+                          <i class="fa fa-save"></i> Save Category
+                        </button>
+                      </div>
+                    </z-popover>
+                  </ng-template>
+                  <button 
+                    type="button" 
+                    z-button 
+                    zPopover
+                    zType="ghost" 
+                    class="new-category-btn" 
+                    title="Add Category"
+                    [zContent]="categoryPopup"
+                    #popoverTrigger
+                  >
+                    <i class="fa fa-circle-plus"></i>
+                  </button>
+                </div>
+              </z-form-field>
             </div>
-          </z-form-field>
-          <z-form-field>
-            <button type="submit" z-button zType="secondary" class="save-task-btn">
+          </div>
+          <!-- Checkbox for advanced fields -->
+          <div class="form-row" style="margin-top: 12px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: 500;">
+              <input type="checkbox" [(ngModel)]="showAdvanced" name="showAdvanced" style="width:18px;height:18px;" />
+              More
+            </label>
+          </div>
+          <!-- Advanced fields -->
+          @if (showAdvanced) {
+            <div class="form-row form-row-3">             
+              <div class="form-col-horizontal">
+                <z-form-field label="Start Date">
+                  <input z-input class="input form-input" type="date" name="startDate" [(ngModel)]="task.startDate" placeholder="Start Date" />
+                </z-form-field>
+                <z-form-field label="End Date">
+                  <input z-input class="input form-input" type="date" name="endDate" [(ngModel)]="task.endDate" placeholder="End Date" />
+                </z-form-field>
+              </div>
+              <div class="form-row-horizontal">
+                <z-form-field label="Status">
+                  <z-select 
+                    zPlaceholder="Status" 
+                    name="status" 
+                    [(ngModel)]="task.status" 
+                    required
+                    class="form-input"
+                  >
+                    <z-select-item zValue="PENDING">Pending</z-select-item>
+                    <z-select-item zValue="IN_PROGRESS">In Progress</z-select-item>
+                    <z-select-item zValue="COMPLETED">Completed</z-select-item>
+                    <z-select-item zValue="CANCELED">Canceled</z-select-item>
+                  </z-select>
+                </z-form-field>
+                <z-form-field label="Priority">
+                  <z-select zPlaceholder="Priority" name="priority" [(ngModel)]="task.priority" required class="form-input">
+                    <z-select-item zValue="LOW">Low</z-select-item>
+                    <z-select-item zValue="MEDIUM">Medium</z-select-item>
+                    <z-select-item zValue="HIGH">High</z-select-item>
+                  </z-select>
+                </z-form-field>
+                <div class="form-col-horizontal">
+                <z-form-field label="Description">
+                  <input z-input class="input form-input" name="description" [(ngModel)]="task.description" placeholder="Description" />
+                </z-form-field>
+              </div>
+              </div>
+            </div>
+          }
+          <div class="form-actions">
+            <button 
+              type="submit" 
+              z-button 
+              zType="secondary" 
+              class="save-task-btn"
+              [style.visibility]="!task.name || !task.categoryId ? 'hidden' : 'visible'"
+            >
               <i class="fa fa-plus"></i>
               Create Task
             </button>
-          </z-form-field>
-        </div>
+          </div>
+        </form>
         @if (dateError) {
           <div class="msg" style="color:#e53e3e;">Start Date cannot be after End Date and End Date cannot be before Start Date.</div>
         }
         @if (message) {
           <div class="msg">{{ message }}</div>
         }
-      </form>
+      </div>
+
+      <!-- Filter section -->
+      <div class="filter-section">
+        <label class="filter-label">Filter Tasks by Category:</label>
+        @if (uniqueCategories.length > 0) {
+        <z-select 
+          zPlaceholder="Select Category" 
+          [ngModel]="selectedCategoryId"
+          (ngModelChange)="onCategorySelect($event)"
+          name="selectedCategoryId"
+          class="filter-select"
+        >
+          <ng-container *ngFor="let cat of uniqueCategories; trackBy: trackById">
+            <z-select-item [zValue]="cat.id">{{ cat.name }}</z-select-item>
+          </ng-container>
+        </z-select>
+        } @else {
+          <div>Loading categories...</div>
+        }
+      </div>
     </div>
   </div>
 
-  <div class="task-table-container">
-    <div class="form-field flex flex-col mb-16 space-y-" style="max-width: 300px; ">
-      <label>Show tasks In Progress:</label>
-      @if (uniqueCategories.length > 0) {
-      <z-select 
-        zPlaceholder="Tasks" 
-        [(ngModel)]="selectedCategoryId"
-        (ngModelChange)="selectedCategoryId = $event; onCategorySelect($event)"
-        name="selectedCategoryId"
-        style="min-width:80px;max-width:80px;"
-      >
-        <ng-container *ngFor="let cat of uniqueCategories; trackBy: trackById">
-          <z-select-item [zValue]="cat.id">{{ cat.name }}</z-select-item>
-        </ng-container>
-      </z-select>
-      } @else {
-          <div>Loading categories...</div>
-        }
-    </div>
-    @if (filteredTasks.length > 0) {
+  <!-- Table for filtered tasks by category -->
+  @if (filteredTasks.length > 0) {
+    <h4 class="table-title">Tasks filtered by desired category</h4>
+    <div class="task-table-container">
       <table class="elegant-table">
         <thead>
           <tr>
@@ -194,13 +234,81 @@
           }
         </tbody>
       </table>
-    }
-    @if (selectedCategoryId && filteredTasks.length === 0) {
-      <div class="msg">
-        No tasks in progress found for this category.
-      </div>
-    }
-  </div>
+    </div>
+  }
+  @if (selectedCategoryId && filteredTasks.length === 0) {
+    <div class="msg">
+      No tasks in progress found for this category.
+    </div>
+  }
+
+  <!-- Table for selected day tasks -->
+  @if (selectedDayTasks.length > 0) {
+    <h4 id="selected-task-table" class="table-title">Task selected by calendar</h4>
+    <div class="task-table-container">
+      <table class="elegant-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Total Learning Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (task of selectedDayTasks; track task.id) {
+            <tr>
+              <td>
+                <button z-button zType="ghost" class="play-btn" (click)="openPomodoro(task)">
+                  <i class="icon-play"></i>
+                </button>
+              </td>
+              <td>{{ task.name }}</td>
+              <td>{{ task.description }}</td>
+              <td>{{ task.startDate ? (task.startDate | date:'MM/dd/yyyy') : '' }}</td>
+              <td>{{ task.endDate ? (task.endDate | date:'MM/dd/yyyy') : '' }}</td>
+              <td>
+                <z-badge class="w-22 flex justify-center"
+                  [zType]="
+                    task.status === 'PENDING' ? 'outline' :
+                    task.status === 'IN_PROGRESS' ? 'secondary' :
+                    task.status === 'COMPLETED' ? 'default' :
+                    task.status === 'CANCELED' ? 'destructive' : 'destructive'
+                  ">
+                  {{
+                    task.status === 'PENDING' ? 'Pending' :
+                    task.status === 'IN_PROGRESS' ? 'In Progress' :
+                    task.status === 'COMPLETED' ? 'Completed' :
+                    task.status === 'CANCELED' ? 'Canceled' : task.status
+                  }}
+                </z-badge>
+              </td>
+              <td>
+                <z-badge class="w-22 flex justify-center"
+                  zShape="square"
+                  [zType]="
+                    task.priority === 'LOW' ? 'outline' :
+                    task.priority === 'MEDIUM' ? 'secondary' :
+                    task.priority === 'HIGH' ? 'destructive' : 'default'
+                  ">
+                  {{
+                    task.priority === 'LOW' ? 'Low' :
+                    task.priority === 'MEDIUM' ? 'Medium' :
+                    task.priority === 'HIGH' ? 'High' : task.priority
+                  }}
+                </z-badge>
+              </td>
+              <td>{{ task.timeTotalLearning }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
 
   <!-- Pomodoro Fullscreen Popup -->
   @if (showPomodoro) {
