@@ -6,6 +6,7 @@ import { ZardBadgeComponent } from '../shared/components/badge/badge.component';
 import { TaskService } from './task.service';
 import { DatePipe } from '@angular/common';
 import { ZardPaginationModule } from '@shared/components/pagination/pagination.module';
+import { Observable } from 'rxjs';
 
 import { signal } from '@angular/core';
  
@@ -87,5 +88,18 @@ export class ZardDemoTableSimpleComponent {
       this.currentPage.set(next);
       this.loadPage(next); 
     }
+  }
+}
+
+@Component({
+  selector: 'app-task',
+  template: '',
+})
+export class TaskComponent {
+  constructor(private taskService: TaskService) {}
+
+  // Edit a task by id, returns the observable from the service
+  editTask(taskId: number | string, payload: any): Observable<any> {
+    return this.taskService.updateTask(taskId, payload);
   }
 }
