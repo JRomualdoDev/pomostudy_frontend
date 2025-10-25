@@ -6,7 +6,7 @@
         <span class="daily-date">Monday, Oct 20</span>
       </div>
       <div class="daily-header-right">
-        <div class="daily-view-switch">
+        <!-- <div class="daily-view-switch">
           <span class="active">Grid</span>
           <span>List</span>
         </div>
@@ -14,7 +14,7 @@
           <span>Sort</span>
           <span>Group</span>
           <span>Suggestions</span>
-        </div>
+        </div> -->
       </div>
     </div>
     <div class="daily-add-task-row">
@@ -43,14 +43,19 @@
         </thead>
         <tbody>
           <!-- Tasks not completed -->
-          <tr *ngFor="let task of tasks" [class.selected]="task === selectedTask" (click)="selectedTask = task">
+          <tr *ngFor="let task of tasks" [class.selected]="task === selectedTask" (click)="onSelectTask(task)">
             <td>
-               <input type="checkbox" [checked]="task.completed" />
+               <!-- intercept changes, stop row click propagation -->
+               <input 
+                 type="checkbox" 
+                 [checked]="task.completed" 
+                 (change)="onToggleCompleted(task, $event); $event.stopPropagation()"
+               />
             </td>
             <td>{{ task.name }}</td>
             <td>{{ task.description || '-' }}</td>
-            <td>{{ task.startDate || '-' }}</td>
-            <td>{{ task.endDate || '-' }}</td>
+            <td>{{ formatDateForInput(task.startDate) || '-' }}</td>
+            <td>{{ formatDateForInput(task.endDate) || '-' }}</td>
             <td>
               <span>
                 {{
@@ -94,16 +99,20 @@
           </tr>
           <!-- Completed tasks -->
           <ng-container *ngIf="showCompleted">
-            <tr *ngFor="let task of completedTasks" class="daily-completed-row">
+            <tr *ngFor="let task of completedTasks" class="daily-completed-row" (click)="onSelectTask(task)">
               <td>
-                <input type="checkbox" checked />
+                <input 
+                  type="checkbox" 
+                  [checked]="task.completed" 
+                  (change)="onToggleCompleted(task, $event); $event.stopPropagation()" 
+                />
               </td>
               <td>
                 <span class="daily-completed-text">{{ task.name }}</span>
               </td>
-              <td>{{ task.description || '-' }}</td>
-              <td>{{ task.startDate || '-' }}</td>
-              <td>{{ task.endDate || '-' }}</td>
+              <td>{{ formatDateForInput(task.description) || '-' }}</td>
+              <td>{{ formatDateForInput(task.startDate) || '-' }}</td>
+              <td>{{ formatDateForInput(task.endDate) || '-' }}</td>
               <td>
                 <span>
                   {{
@@ -140,10 +149,105 @@
         <i class="fa fa-star daily-star" [class.filled]="selectedTask.important"></i>
       </div>
       <div class="daily-task-actions">
-        <div><i class="fa fa-sync"></i> Repeats weekly <span class="daily-task-repeat">Tue, Thu & Sat</span></div>
-        <div><i class="fa fa-tag"></i> Choose a category</div>
+        <!-- <div><i class="fa fa-sync"></i> Repeats weekly <span class="daily-task-repeat">Tue, Thu & Sat</span></div> -->
+
+        <!-- Category chooser: button opens popover with select populated from backend categories -->
+        <div class="category-chooser">
+          <button z-button zType="ghost" class="choose-cat-btn" zPopover [zContent]="categoryPopup" title="Choose category" #categoryPopoverTrigger>
+            <i class="fa fa-tag" style="margin-right:8px"></i>
+            {{ sidebarTask.categoryId ? (getCategoryName(sidebarTask.categoryId) || 'Category') : 'Choose category' }}
+          </button>
+          <ng-template #categoryPopup>
+            <z-popover>
+              <div style="min-width:240px; max-width:340px; padding:12px;">
+                <h4 style="margin:0 0 8px 0;">Select Category</h4>
+                <z-select zPlaceholder="Categories" [(ngModel)]="sidebarTask.categoryId" (ngModelChange)="onSidebarCategorySelect($event)">
+                  <ng-container *ngFor="let cat of categories">
+                    <z-select-item [zValue]="cat.id">{{ cat.name }}</z-select-item>
+                  </ng-container>
+                </z-select>
+                <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+                  <z-button zSize="sm" zType="secondary" (click)="closeCategoryPopover(categoryPopoverTrigger)">Done</z-button>
+                </div>
+              </div>
+            </z-popover>
+          </ng-template>
+        </div>
+
         <div><i class="fa fa-sticky-note"></i> Add note</div>
       </div>
+
+      <!-- Sidebar create task form (name, description, startDate, endDate, status, priority) -->
+      <form (ngSubmit)="createTaskFromSidebar()" class="sidebar-create-form" autocomplete="off" style="margin-top:16px;">
+        <z-form-field label="Name">
+          <input z-input name="sidebarName" [(ngModel)]="sidebarTask.name" placeholder="Name" required />
+        </z-form-field>
+
+        <z-form-field label="Description" style="margin-top:8px;">
+          <input z-input name="sidebarDescription" [(ngModel)]="sidebarTask.description" placeholder="Description" />
+        </z-form-field>
+
+        <div style="display:flex;gap:8px;">
+          <z-form-field label="Start Date" style="flex:1; width: 50px;">
+            <input z-input type="date" name="sidebarStart" [(ngModel)]="sidebarTask.startDate" />
+          </z-form-field>
+          <z-form-field label="End Date" style="flex:1; width: 50px;">
+            <input z-input type="date" name="sidebarEnd" [(ngModel)]="sidebarTask.endDate" />
+          </z-form-field>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:end;">
+          <z-form-field label="Status" style="flex:1;">
+            <z-select class="sidebar-select" name="sidebarStatus" [(ngModel)]="sidebarTask.status" zPlaceholder="Status">
+              <z-select-item zValue="PENDING">Pending</z-select-item>
+              <z-select-item zValue="IN_PROGRESS">In Progress</z-select-item>
+              <z-select-item zValue="COMPLETED">Completed</z-select-item>
+              <z-select-item zValue="CANCELED">Canceled</z-select-item>
+            </z-select>
+          </z-form-field>
+          <z-form-field label="Priority" style="flex:1;">
+            <z-select class="sidebar-select" name="sidebarPriority" [(ngModel)]="sidebarTask.priority" zPlaceholder="Priority">
+              <z-select-item zValue="LOW">Low</z-select-item>
+              <z-select-item zValue="MEDIUM">Medium</z-select-item>
+              <z-select-item zValue="HIGH">High</z-select-item>
+            </z-select>
+          </z-form-field>
+        </div>
+
+        <!-- Update Task button -->
+        <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+          <z-button
+            zType="secondary"
+            class="save-task-btn"
+            (click)="updateTask()"
+            [disabled]="!selectedTask?.id || !isSidebarModified()"
+            [attr.aria-disabled]="!selectedTask?.id || !isSidebarModified()"
+            title="Update selected task"
+          >
+            <i class="fa fa-save" aria-hidden="true" style="margin-right:8px;"></i>
+            Update Task
+          </z-button>
+        </div>
+      </form>
     </div>
   </div>
+
+  <!-- Confirmation popover overlay (Zard popover used as centered modal) -->
+  <ng-container *ngIf="confirmToggle">
+    <div class="confirm-overlay">
+      <z-popover>
+        <div style="min-width:280px; padding:16px;">
+          <h4 style="margin:0 0 8px 0;">Confirm</h4>
+          <p style="margin:0 0 12px 0;">
+            {{ confirmToggle.message }}
+          </p>
+          <div style="display:flex; gap:8px; justify-content:flex-end;">
+            <z-button zSize="sm" zType="ghost" (click)="confirmToggleNo()">Cancel</z-button>
+            <z-button zSize="sm" zType="secondary" (click)="confirmToggleYes()">Yes</z-button>
+          </div>
+        </div>
+      </z-popover>
+    </div>
+  </ng-container>
+
 </div>
