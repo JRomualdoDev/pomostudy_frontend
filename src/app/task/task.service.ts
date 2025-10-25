@@ -62,6 +62,15 @@ export class TaskService {
     return this.http.post<any>(this.apiUrl, task, { headers });
   }
 
+  updateTask(taskId: number | string, task: any): Observable<any> {
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders({
+      Authorization: token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json'
+    });
+    return this.http.put<any>(`${this.apiUrl}/${taskId}`, task, { headers });
+  }
+
   getTasksByCategory(categoryId: number): Observable<any> {
     const token = localStorage.getItem('auth_token');
     const headers = new HttpHeaders({
