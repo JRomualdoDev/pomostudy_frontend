@@ -43,13 +43,13 @@
         </thead>
         <tbody>
           <!-- Tasks not completed -->
-          <tr *ngFor="let task of tasks" [class.selected]="task === selectedTask" (click)="onSelectTask(task)">
+          <tr *ngFor="let task of tasks" [class.selected]="task.id === selectedTask?.id" (click)="onSelectTask(task)">
             <td>
                <!-- intercept changes, stop row click propagation -->
                <input 
                  type="checkbox" 
                  [checked]="task.completed" 
-                 (change)="onToggleCompleted(task, $event); $event.stopPropagation()"
+                 (change)="$event.stopPropagation(); task.completed = $event.target.checked"
                />
             </td>
             <td>{{ task.name }}</td>
@@ -99,12 +99,12 @@
           </tr>
           <!-- Completed tasks -->
           <ng-container *ngIf="showCompleted">
-            <tr *ngFor="let task of completedTasks" class="daily-completed-row" (click)="onSelectTask(task)">
+            <tr *ngFor="let task of completedTasks" class="daily-completed-row" [class.selected]="task.id === selectedTask?.id" (click)="onSelectTask(task)">
               <td>
                 <input 
                   type="checkbox" 
                   [checked]="task.completed" 
-                  (change)="onToggleCompleted(task, $event); $event.stopPropagation()" 
+                  (change)="$event.stopPropagation(); task.completed = $event.target.checked" 
                 />
               </td>
               <td>
@@ -155,19 +155,20 @@
         <div class="category-chooser">
           <button z-button zType="ghost" class="choose-cat-btn" zPopover [zContent]="categoryPopup" title="Choose category" #categoryPopoverTrigger>
             <i class="fa fa-tag" style="margin-right:8px"></i>
-            {{ sidebarTask.categoryId ? (getCategoryName(sidebarTask.categoryId) || 'Category') : 'Choose category' }}
+            {{ getDisplayedCategoryName() || 'Choose category' }}
           </button>
           <ng-template #categoryPopup>
             <z-popover>
               <div style="min-width:240px; max-width:340px; padding:12px;">
                 <h4 style="margin:0 0 8px 0;">Select Category</h4>
-                <z-select zPlaceholder="Categories" [(ngModel)]="sidebarTask.categoryId" (ngModelChange)="onSidebarCategorySelect($event)">
+                <z-select zPlaceholder="Categories" [(ngModel)]="sidebarTask.categoryId"
+                  (ngModelChange)="onSidebarCategorySelect($event, categoryPopoverTrigger)">
                   <ng-container *ngFor="let cat of categories">
                     <z-select-item [zValue]="cat.id">{{ cat.name }}</z-select-item>
                   </ng-container>
                 </z-select>
                 <div style="margin-top:12px; display:flex; justify-content:flex-end;">
-                  <z-button zSize="sm" zType="secondary" (click)="closeCategoryPopover(categoryPopoverTrigger)">Done</z-button>
+                  <z-button zSize="sm" zType="secondary" (click)="$any(this).closeCategoryPopover(categoryPopoverTrigger)">Done</z-button>
                 </div>
               </div>
             </z-popover>
@@ -242,8 +243,8 @@
             {{ confirmToggle.message }}
           </p>
           <div style="display:flex; gap:8px; justify-content:flex-end;">
-            <z-button zSize="sm" zType="ghost" (click)="confirmToggleNo()">Cancel</z-button>
-            <z-button zSize="sm" zType="secondary" (click)="confirmToggleYes()">Yes</z-button>
+            <z-button zSize="sm" zType="ghost" (click)="confirmToggle = null">Cancel</z-button>
+            <z-button zSize="sm" zType="secondary" (click)="confirmToggle = null">Yes</z-button>
           </div>
         </div>
       </z-popover>

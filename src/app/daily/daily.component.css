@@ -166,6 +166,48 @@
   background: #eaf6fb;
 }
 
+/* Make rows visually clickable on hover without shifting layout */
+.elegant-table tbody tr {
+  transition: background 120ms ease, box-shadow 120ms ease;
+  will-change: background, box-shadow;
+  backface-visibility: hidden;
+  /* ensure GPU compositing but do not move elements */
+  transform: none !important;
+}
+
+/* Hover: subtle highlight and shadow only — NO translate to prevent trembling */
+.elegant-table tbody tr:hover {
+  background: #eef6ff !important;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(51,92,161,0.04);
+  transform: none !important;
+}
+
+/* Prevent form controls inside rows from showing pointer or causing layout shifts */
+.elegant-table tbody tr:hover input,
+.elegant-table tbody tr:hover button,
+.elegant-table tbody tr:hover select {
+  cursor: default;
+  transform: none !important;
+}
+
+/* Strong selected row visual (higher specificity) */
+.elegant-table tbody tr.selected td {
+  background: linear-gradient(90deg, rgba(51,92,161,0.06), rgba(74,116,201,0.03)) !important;
+  /* removed vertical blue border to avoid the visual line */
+  color: #0f172a !important;
+  font-weight: 600 !important;
+  transform: none !important;
+}
+
+/* Remove any previous translate rules in media queries */
+@media (min-width: 900px) {
+  .elegant-table tbody tr:hover {
+    box-shadow: 0 8px 20px rgba(51,92,161,0.06);
+    transform: none !important;
+  }
+}
+
 .daily-completed-header {
   background: #f6f8fa;
   font-weight: 600;
@@ -560,3 +602,29 @@ z-button.save-task-btn i,
     margin: 0 12px;
   }
 }
+
+/* Remove browser focus outline / blue border when a row or any child control is focused */
+.elegant-table tbody tr:focus,
+.elegant-table tbody tr:focus td,
+.elegant-table tbody tr:focus *:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Also remove outline on interactive elements inside rows to avoid the blue ring */
+.elegant-table tbody tr input:focus,
+.elegant-table tbody tr button:focus,
+.elegant-table tbody tr select:focus,
+.elegant-table tbody tr a:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure keyboard users still see a visible focus indicator elsewhere if needed:
+   Uncomment and adjust the rule below if you want a subtle custom focus style instead of the browser default.
+*/
+/*
+.elegant-table tbody tr:focus td {
+  box-shadow: inset 0 0 0 2px rgba(51,92,161,0.08);
+}
+*/

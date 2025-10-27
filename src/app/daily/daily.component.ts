@@ -33,7 +33,7 @@ export class DailyComponent implements OnInit {
   showCompleted = true;
 
   // model used by the sidebar form
-  sidebarTask: any = { name: '', description: '', startDate: '', endDate: '', status: 'PENDING', priority: 'LOW' };
+  sidebarTask: any = { name: '', description: '', startDate: '', endDate: '', status: 'PENDING', priority: 'LOW', categoryId: null };
 
   categories: any[] = []; // store categories
 
@@ -51,9 +51,9 @@ export class DailyComponent implements OnInit {
 
   ngOnInit() {
     this.loadTasksFromServer();
-    this.loadCategories(); // new: load categories
+    // also load categories early so mapping is available (loadCategories is idempotent)
+    this.loadCategories();
   }
-
 
   loadTasksFromServer() {
     this.taskService.getTasks().subscribe({
@@ -73,6 +73,10 @@ export class DailyComponent implements OnInit {
         // populate sidebar form with selected task (if any)
         if (this.selectedTask) {
           this.populateSidebarTask(this.selectedTask);
+          // if categories not yet loaded, trigger load so we can resolve names
+          if (this.sidebarTask?.categoryId && (!Array.isArray(this.categories) || this.categories.length === 0)) {
+            this.loadCategories();
+          }
         }
       },
       error: (err) => {
@@ -89,6 +93,12 @@ export class DailyComponent implements OnInit {
   onSelectTask(task: any) {
     this.selectedTask = task;
     this.populateSidebarTask(task);
+
+    // If the task already has a category but categories list is empty,
+    // load categories so getCategoryName(...) can resolve the name immediately.
+    if (this.sidebarTask?.categoryId && (!Array.isArray(this.categories) || this.categories.length === 0)) {
+      this.loadCategories();
+    }
   }
 
   // copy values from a task into the sidebar form model
@@ -100,7 +110,11 @@ export class DailyComponent implements OnInit {
       startDate: task?.startDate ? this.formatDateForInput(task.startDate) : '',
       endDate: task?.endDate ? this.formatDateForInput(task.endDate) : '',
       status: task?.status ?? 'PENDING',
-      priority: task?.priority ?? 'LOW'
+      priority: task?.priority ?? 'LOW',
+      // normalize category id: support task.categoryId or nested task.category.id
+      categoryId: task?.categoryId ?? task?.category?.id ?? null,
+      // keep a possible fallback category name coming from the task object itself
+      _categoryNameFallback: task?.category?.name ?? null
     };
   }
 
@@ -210,7 +224,7 @@ export class DailyComponent implements OnInit {
       next: () => {
         this.loadTasksFromServer(); // refresh list
         // reset form
-        this.sidebarTask = { name: '', description: '', startDate: '', endDate: '', status: 'PENDING', priority: 'LOW' };
+        this.sidebarTask = { name: '', description: '', startDate: '', endDate: '', status: 'PENDING', priority: 'LOW', categoryId: null };
       },
       error: (err) => {
         console.error('Error creating task from sidebar', err);
@@ -226,7 +240,7 @@ export class DailyComponent implements OnInit {
           important: false,
           completed: false
         });
-        this.sidebarTask = { name: '', description: '', startDate: '', endDate: '', status: 'PENDING', priority: 'LOW' };
+        this.sidebarTask = { name: '', description: '', startDate: '', endDate: '', status: 'PENDING', priority: 'LOW', categoryId: null };
       }
     });
   }
@@ -294,6 +308,14 @@ export class DailyComponent implements OnInit {
           }
         }
         this.categories = unique;
+
+        // if sidebar already has a categoryId, set fallback name so label shows immediately
+        if (this.sidebarTask?.categoryId) {
+          const name = this.getCategoryName(this.sidebarTask.categoryId);
+          if (name) {
+            this.sidebarTask._categoryNameFallback = name;
+          }
+        }
       },
       error: (err) => {
         console.error('Error loading categories', err);
@@ -302,116 +324,118 @@ export class DailyComponent implements OnInit {
     });
   }
 
-  // called when a category is selected from popup
-  onSidebarCategorySelect(catId: any) {
+  // called when a category is selected from popup (now receives optional triggerRef)
+  onSidebarCategorySelect(catId: any, triggerRef?: any) {
     this.sidebarTask.categoryId = catId;
-    // if editing a selectedTask, update its categoryId in UI model (doesn't persist until Update)
+
+    // If editing a selectedTask, update its categoryId in UI model (doesn't persist until Update)
     if (this.selectedTask) {
       this.selectedTask.categoryId = catId;
+    }
+
+    // If there's a selected task with an id, persist immediately
+    if (this.selectedTask && this.selectedTask.id != null) {
+      const payload: any = { categoryId: catId };
+      this.taskService.updateTask(this.selectedTask.id, payload).subscribe({
+        next: (updated: any) => {
+          // refresh tasks to reflect server state (keeps ordering/consistency)
+          this.loadTasksFromServer();
+          // close popover if trigger provided
+          if (triggerRef) {
+            this.closeCategoryPopover(triggerRef);
+          }
+        },
+        error: (err) => {
+          console.error('Error saving category for task', err);
+          // Optionally notify the user; keep UI unchanged
+        }
+      });
+    } else {
+      // No selected task id: just update UI; user may create later
+      // close popover for convenience
+      if (triggerRef) {
+        this.closeCategoryPopover(triggerRef);
+      }
+    }
+  }
+
+  // helper to close the category popover/overlay in a tolerant way
+  private closeCategoryPopover(triggerRef: any): void {
+    try {
+      if (!triggerRef) return;
+      // common patterns: Angular CDK/Material/third-party components may expose .close() or .hide()
+      if (typeof triggerRef.close === 'function') {
+        triggerRef.close();
+        return;
+      }
+      if (typeof triggerRef.hide === 'function') {
+        triggerRef.hide();
+        return;
+      }
+      // if it's an ElementRef or DOM node, try to dispatch a click on a close button if present
+      if (triggerRef.nativeElement) {
+        const el = triggerRef.nativeElement as HTMLElement;
+        const btn = el.querySelector('[data-close], .close, [aria-label="close"]') as HTMLElement | null;
+        if (btn && typeof btn.click === 'function') {
+          btn.click();
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Error closing category popover', e);
     }
   }
 
   // Return category name by id, safe for templates
 	getCategoryName(categoryId: any): string {
-		if (!categoryId || !Array.isArray(this.categories)) return '';
-		const cat = this.categories.find((c: any) => c && c.id === categoryId);
-		return cat ? (cat.name ?? '') : '';
-	}
+		if (!categoryId) return '';
+		// normalize id types to string for comparison
+		const idKey = String(categoryId);
 
-  // Safely close the popover trigger if it exposes a close() method
-	closeCategoryPopover(triggerRef: any) {
-		if (!triggerRef) return;
-		try {
-			const maybeClose = (triggerRef as any).close;
-			if (typeof maybeClose === 'function') {
-				maybeClose.call(triggerRef);
-			}
-		} catch (e) {
-			// ignore if closing is not supported
-			console.warn('Could not close category popover', e);
+		// Try to find in loaded categories (handle number/string mismatch)
+		if (Array.isArray(this.categories) && this.categories.length > 0) {
+			const cat = this.categories.find((c: any) => {
+				if (!c) return false;
+				// accept either c.id === categoryId or string match
+				return String(c.id) === idKey;
+			});
+			if (cat && cat.name) return cat.name;
 		}
+
+		// Fallback: if selectedTask or sidebarTask carries a nested category name, return it
+		if (this.sidebarTask && this.sidebarTask._categoryNameFallback) {
+			return this.sidebarTask._categoryNameFallback;
+		}
+		if (this.selectedTask && this.selectedTask.category && this.selectedTask.category.name) {
+			return this.selectedTask.category.name;
+		}
+
+		// final fallback empty
+		return '';
 	}
 
-  // Called when a checkbox is toggled (table or sidebar)
-  onToggleCompleted(task: any, event: Event) {
-    // determine desired value from the input element
-    const input = event.target as HTMLInputElement;
-    const newValue = !!input.checked;
-    const prev = !!task.completed;
+  // Return the category name to display on the sidebar chooser:
+	// prefer sidebarTask.categoryId -> loaded categories -> fallback name -> selectedTask.category name -> empty
+	getDisplayedCategoryName(): string {
+		// 1. try sidebarTask.categoryId
+		const cid = this.sidebarTask?.categoryId ?? (this.selectedTask?.categoryId ?? null);
+		if (cid != null) {
+			const nameFromLoaded = this.getCategoryName(cid);
+			if (nameFromLoaded) return nameFromLoaded;
+		}
 
-    // if no change, do nothing
-    if (newValue === prev) {
-      return;
-    }
+		// 2. try fallback name stored in sidebarTask (from task payload)
+		if (this.sidebarTask?._categoryNameFallback) return this.sidebarTask._categoryNameFallback;
 
-    // prepare message
-    const verb = newValue ? 'mark' : 'unmark';
-    const msg = `Do you want to ${verb} task "${task.name}" as completed?`;
+		// 3. try selectedTask.category.name (nested)
+		if (this.selectedTask?.category?.name) return this.selectedTask.category.name;
 
-    // set confirmation state (overlay will appear)
-    this.confirmToggle = {
-      task,
-      newValue,
-      previousValue: prev,
-      message: msg
-    };
+		// 4. try selectedTask.categoryId mapped to loaded categories
+		if (this.selectedTask?.categoryId != null) {
+			const nameFromLoaded2 = this.getCategoryName(this.selectedTask.categoryId);
+			if (nameFromLoaded2) return nameFromLoaded2;
+		}
 
-    // Note: UI will still show the checkbox changed briefly; we will revert if user cancels.
-    // Revert immediate visual to previous to avoid flicker (optional)
-    // Re-apply previous value so visual matches model until confirmed
-    (event.target as HTMLInputElement).checked = prev;
-  }
-
-  // User confirmed the change
-  confirmToggleYes() {
-    if (!this.confirmToggle) return;
-    const { task, newValue } = this.confirmToggle;
-
-    console.log('User confirmed toggle completed to', newValue, 'for task', task);
-
-    // If task has id, persist to server
-    if (task && task.id != null) {
-      if (newValue == true) { 
-        const payload: any = { status : 'COMPLETED' };
-      
-        // call updateTask on service
-        this.taskService.updateTask(task.id, payload).subscribe({
-          next: (updated: any) => {
-            // apply changes locally and refresh lists
-            this.loadTasksFromServer();
-            this.confirmToggle = null;
-          },
-          error: (err) => {
-            console.error('Error updating completed flag', err);
-            // keep state unchanged and notify user (or revert)
-            this.confirmToggle = null;
-          }
-        });
-      }
-    } else {
-      // no id: apply locally
-      task.completed = newValue;
-      // move between lists if needed
-      if (newValue) {
-        // remove from tasks and add to completedTasks at top
-        this.tasks = this.tasks.filter((t) => t !== task);
-        this.completedTasks.unshift({ ...task, completed: true });
-      } else {
-        // remove from completed and add to tasks
-        this.completedTasks = this.completedTasks.filter((t) => t !== task);
-        this.tasks.unshift({ ...task, completed: false });
-      }
-      this.confirmToggle = null;
-    }
-  }
-
-  // User canceled the change
-  confirmToggleNo() {
-    if (!this.confirmToggle) return;
-    const { task, previousValue } = this.confirmToggle;
-    // Ensure UI reflects previous value
-    task.completed = previousValue;
-    this.confirmToggle = null;
-  }
-  
+		return '';
+	}
 }
