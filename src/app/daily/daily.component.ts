@@ -8,6 +8,7 @@ import { ZardSelectItemComponent } from '@shared/components/select/select-item.c
 import { ZardFormModule } from '@shared/components/form/form.module';
 import { TaskComponent } from '../task/task.component';
 import { CategoryService } from '../category/category.service'; // add import
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-daily',
@@ -50,12 +51,38 @@ export class DailyComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadTasksFromServer();
-    // also load categories early so mapping is available (loadCategories is idempotent)
+    // load categories first so we can map categoryId -> name when tasks arrive
     this.loadCategories();
+    this.loadTasksFromServer();
   }
 
+  // new helper: ensure categories are loaded (returns a Promise)
+	private async ensureCategoriesLoaded(): Promise<void> {
+		// already loaded
+		if (Array.isArray(this.categories) && this.categories.length > 0) return;
+		try {
+			// use firstValueFrom to await the observable result
+			const data: any = await firstValueFrom(this.categoryService.getCategories(1, 200));
+			const all = Array.isArray(data.content) ? data.content : data || [];
+			const unique: any[] = [];
+			const seen = new Set<string>();
+			for (const cat of all) {
+				const nameKey = (cat?.name ?? '').toString().trim().toLowerCase();
+				if (!nameKey) continue;
+				if (!seen.has(nameKey)) {
+					seen.add(nameKey);
+					unique.push(cat);
+				}
+			}
+			this.categories = unique;
+		} catch (err) {
+			console.error('Error ensuring categories loaded', err);
+			this.categories = [];
+		}
+	}
+
   loadTasksFromServer() {
+    const prevSelectedId = this.selectedTask?.id ?? null;
     this.taskService.getTasks().subscribe({
       next: (data: any) => {
         const all = Array.isArray(data.content) ? data.content : [];
@@ -64,18 +91,29 @@ export class DailyComponent implements OnInit {
         this.completedTasks = all.filter((t: any) => t.status === 'COMPLETED');
         this.tasks = all.filter((t: any) => t.status !== 'COMPLETED');
 
-        console.log('Loaded tasks:', this.tasks);
-        console.log('Loaded completed tasks:', this.completedTasks);
+        // preserve previously selected task by id if present
+        if (prevSelectedId != null) {
+          const foundInTasks = this.tasks.find((t: any) => String(t.id) === String(prevSelectedId));
+          const foundInCompleted = this.completedTasks.find((t: any) => String(t.id) === String(prevSelectedId));
+          this.selectedTask = foundInTasks ?? foundInCompleted ?? null;
+        } else {
+          this.selectedTask = this.tasks.length > 0 ? this.tasks[0] : (this.completedTasks.length > 0 ? this.completedTasks[0] : null);
+        }
 
-        // set selectedTask to the first available
-        this.selectedTask = this.tasks.length > 0 ? this.tasks[0] : (this.completedTasks.length > 0 ? this.completedTasks[0] : null);
-
-        // populate sidebar form with selected task (if any)
+        // populate sidebar form with selected task (if any) and ensure category fallback
         if (this.selectedTask) {
           this.populateSidebarTask(this.selectedTask);
-          // if categories not yet loaded, trigger load so we can resolve names
-          if (this.sidebarTask?.categoryId && (!Array.isArray(this.categories) || this.categories.length === 0)) {
-            this.loadCategories();
+          const cid = this.sidebarTask?.categoryId ?? this.selectedTask?.categoryId ?? null;
+          if (cid != null) {
+            if (!Array.isArray(this.categories) || this.categories.length === 0) {
+              this.ensureCategoriesLoaded().then(() => {
+                const resolved = this.getCategoryName(cid);
+                if (resolved) this.sidebarTask._categoryNameFallback = resolved;
+              });
+            } else {
+              const resolved = this.getCategoryName(cid);
+              if (resolved) this.sidebarTask._categoryNameFallback = resolved;
+            }
           }
         }
       },
@@ -94,10 +132,20 @@ export class DailyComponent implements OnInit {
     this.selectedTask = task;
     this.populateSidebarTask(task);
 
-    // If the task already has a category but categories list is empty,
-    // load categories so getCategoryName(...) can resolve the name immediately.
-    if (this.sidebarTask?.categoryId && (!Array.isArray(this.categories) || this.categories.length === 0)) {
-      this.loadCategories();
+    // ensure categories loaded and set fallback name immediately
+    const cid = this.sidebarTask?.categoryId ?? this.selectedTask?.categoryId ?? null;
+    if (cid != null) {
+      if (!Array.isArray(this.categories) || this.categories.length === 0) {
+        this.ensureCategoriesLoaded().then(() => {
+          const resolved = this.getCategoryName(cid);
+          if (resolved) this.sidebarTask._categoryNameFallback = resolved;
+        });
+      } else {
+        const resolved = this.getCategoryName(cid);
+        if (resolved) this.sidebarTask._categoryNameFallback = resolved;
+      }
+    } else if (this.selectedTask?.category?.name) {
+      this.sidebarTask._categoryNameFallback = this.selectedTask.category.name;
     }
   }
 
@@ -326,36 +374,47 @@ export class DailyComponent implements OnInit {
 
   // called when a category is selected from popup (now receives optional triggerRef)
   onSidebarCategorySelect(catId: any, triggerRef?: any) {
+    // set in sidebar model immediately so UI updates
     this.sidebarTask.categoryId = catId;
 
-    // If editing a selectedTask, update its categoryId in UI model (doesn't persist until Update)
-    if (this.selectedTask) {
-      this.selectedTask.categoryId = catId;
+    // resolve category name fast
+    const cat = Array.isArray(this.categories) ? this.categories.find((c: any) => String(c.id) === String(catId)) : null;
+    if (cat && cat.name) {
+      this.sidebarTask._categoryNameFallback = cat.name;
     }
 
-    // If there's a selected task with an id, persist immediately
+    // Update selectedTask UI model immediately
+    if (this.selectedTask) {
+      this.selectedTask.categoryId = catId;
+      if (cat) this.selectedTask.category = { id: cat.id, name: cat.name };
+    }
+
+    // Persist immediately if selected task exists on server
     if (this.selectedTask && this.selectedTask.id != null) {
       const payload: any = { categoryId: catId };
       this.taskService.updateTask(this.selectedTask.id, payload).subscribe({
         next: (updated: any) => {
-          // refresh tasks to reflect server state (keeps ordering/consistency)
-          this.loadTasksFromServer();
-          // close popover if trigger provided
-          if (triggerRef) {
-            this.closeCategoryPopover(triggerRef);
+          // update local models only (avoid full reload that resets UI)
+          if (updated) {
+            // if backend returns updated object, sync fields
+            if (updated.id === this.selectedTask.id) {
+              this.selectedTask = { ...this.selectedTask, ...updated };
+              this.populateSidebarTask(this.selectedTask);
+              // ensure fallback shows the new name
+              const resolved = this.getCategoryName(catId) || (cat?.name ?? '');
+              if (resolved) this.sidebarTask._categoryNameFallback = resolved;
+            }
           }
+          if (triggerRef) this.closeCategoryPopover(triggerRef);
         },
         error: (err) => {
           console.error('Error saving category for task', err);
-          // Optionally notify the user; keep UI unchanged
+          if (triggerRef) this.closeCategoryPopover(triggerRef);
         }
       });
     } else {
-      // No selected task id: just update UI; user may create later
-      // close popover for convenience
-      if (triggerRef) {
-        this.closeCategoryPopover(triggerRef);
-      }
+      // No selected task id: just close popover for convenience
+      if (triggerRef) this.closeCategoryPopover(triggerRef);
     }
   }
 
@@ -389,20 +448,30 @@ export class DailyComponent implements OnInit {
   // Return category name by id, safe for templates
 	getCategoryName(categoryId: any): string {
 		if (!categoryId) return '';
-		// normalize id types to string for comparison
-		const idKey = String(categoryId);
 
-		// Try to find in loaded categories (handle number/string mismatch)
+		const idKey = String(categoryId).trim();
+
+		// Try to find in loaded categories (handle number/string and multiple id fields)
 		if (Array.isArray(this.categories) && this.categories.length > 0) {
 			const cat = this.categories.find((c: any) => {
 				if (!c) return false;
-				// accept either c.id === categoryId or string match
-				return String(c.id) === idKey;
+				// check common id fields and stringified equality
+				const possibleIds = [c.id, c.categoryId, c._id];
+				for (const pid of possibleIds) {
+					if (pid !== undefined && pid !== null && String(pid) === idKey) return true;
+				}
+				return false;
 			});
 			if (cat && cat.name) return cat.name;
 		}
 
-		// Fallback: if selectedTask or sidebarTask carries a nested category name, return it
+		// Try matching category name directly (in case backend stored name in the id slot)
+		if (Array.isArray(this.categories) && this.categories.length > 0) {
+			const byName = this.categories.find((c: any) => c && String(c.name).trim() === idKey);
+			if (byName && byName.name) return byName.name;
+		}
+
+		// Fallbacks: sidebar fallback or nested selectedTask.category.name
 		if (this.sidebarTask && this.sidebarTask._categoryNameFallback) {
 			return this.sidebarTask._categoryNameFallback;
 		}
@@ -436,6 +505,6 @@ export class DailyComponent implements OnInit {
 			if (nameFromLoaded2) return nameFromLoaded2;
 		}
 
-		return '';
+		return 'Choose category';
 	}
 }
