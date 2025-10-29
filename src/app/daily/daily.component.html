@@ -155,7 +155,7 @@
         <div class="category-chooser">
           <button z-button zType="ghost" class="choose-cat-btn" zPopover [zContent]="categoryPopup" title="Choose category" #categoryPopoverTrigger>
             <i class="fa fa-tag" style="margin-right:8px"></i>
-            {{ getDisplayedCategoryName() || 'Choose category' }}
+            {{ getDisplayedCategoryName()}}
           </button>
           <ng-template #categoryPopup>
             <z-popover>
