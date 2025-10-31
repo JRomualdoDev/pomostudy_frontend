@@ -108,6 +108,7 @@ export class DailyComponent implements OnInit {
             if (!Array.isArray(this.categories) || this.categories.length === 0) {
               this.ensureCategoriesLoaded().then(() => {
                 const resolved = this.getCategoryName(cid);
+                console.log('Resolved category name after loading categories:', resolved);
                 if (resolved) this.sidebarTask._categoryNameFallback = resolved;
               });
             } else {
