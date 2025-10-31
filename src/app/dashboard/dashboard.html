@@ -99,3 +99,216 @@
         </z-layout>
       </z-layout>
     </z-layout>
+
+    <style>
+      /* Theme variables (light defaults) */
+      :root {
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --header-bg: #ffffff;
+        --sidebar-bg: #f1f5f9;
+        --card-bg: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --accent: #3b82f6;
+        --accent-strong: #335ca1;
+        --border: #e6eef9;
+        --muted-surface: #f3f6fb;
+      }
+
+      /* Dark theme: apply when body has class 'dark-theme' or [data-theme="dark"] */
+      body.dark-theme,
+      .dark-theme,
+      [data-theme="dark"] {
+        --bg: #071026;
+        --surface: #071426;
+        --header-bg: #071726;
+        --sidebar-bg: #061226;
+        --card-bg: #081827;
+        --text: #e6eef8;
+        --muted: #94a3b8;
+        --accent: #60a5fa;
+        --accent-strong: #2b6cb0;
+        --border: rgba(255,255,255,0.06);
+        --muted-surface: rgba(255,255,255,0.02);
+      }
+
+      /* Apply general colors */
+      html, body, z-layout {
+        background: var(--bg) !important;
+        color: var(--text) !important;
+      }
+
+      z-header,
+      z-footer,
+      .z-header,
+      .z-footer {
+        background: var(--header-bg) !important;
+        color: var(--text) !important;
+        /* border-bottom: 1px solid var(--border); */
+      }
+
+      /* Sidebar */
+      z-sidebar,
+      .sidebar {
+        background: var(--sidebar-bg) !important;
+        color: var(--text) !important;
+        /* border-right: 1px solid var(--border); */
+      }
+      z-sidebar button[z-button], .sidebar button[z-button] {
+        color: var(--text);
+      }
+
+      /* Content cards and forms */
+      z-content,
+      .space-y-4,
+      .daily-task-detail,
+      .sidebar-create-form,
+      .elegant-table {
+        background: transparent;
+        color: var(--text);
+      }
+
+      /* Inputs, selects, popovers, buttons */
+      input, textarea, select, z-select, z-button, .z-input {
+        background: var(--card-bg) !important;
+        color: var(--text) !important;
+        border: 1px solid var(--border) !important;
+      }
+
+      /* Buttons primary / accent */
+      z-button[zType="secondary"], .save-task-btn {
+        background: linear-gradient(90deg, var(--accent) 0%, var(--accent-strong) 100%) !important;
+        color: #fff !important;
+        box-shadow: 0 8px 24px rgba(11,20,40,0.12);
+      }
+      z-button[zType="ghost"], button[z-button][zType="ghost"] {
+        background: transparent !important;
+        color: var(--text) !important;
+        border: none !important;
+      }
+
+      /* Tables */
+      .elegant-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .elegant-table th, .elegant-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+      }
+      .elegant-table thead th {
+        color: var(--muted);
+        font-weight: 600;
+        background: transparent;
+      }
+
+      /* Sidebar chooser button */
+      .choose-cat-btn {
+        color: var(--text);
+        background: transparent;
+        border: 1px solid var(--border);
+      }
+
+      /* Popovers / modals */
+      z-popover, .z-popover {
+        background: var(--card-bg) !important;
+        color: var(--text) !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: 0 12px 40px rgba(2,6,23,0.6);
+      }
+
+      /* Muted text (small labels) */
+      .text-muted, .text-muted-foreground {
+        color: var(--muted) !important;
+      }
+
+      /* Ensure icons visible */
+      .fa, .icon-search, .icon-bell, .icon-log-out, .icon-house, .fa-sun {
+        color: var(--text) !important;
+        opacity: 0.95;
+      }
+
+      /* Accessibility: focus ring (subtle) for keyboard users */
+      .z-button:focus, button:focus, input:focus, select:focus {
+        outline: 2px solid rgba(96,165,250,0.18);
+        outline-offset: 2px;
+      }
+
+      /* central content panel (make not pure white, respect theme) */
+      .space-y-4 {
+        background: var(--surface) !important;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(2,6,23,0.06);
+        border: 1px solid var(--border);
+      }
+
+      /* ensure router outlet area uses surface color */
+      z-content .space-y-4,
+      .page-panel {
+        background: var(--surface) !important;
+      }
+
+      /* Selected sidebar button: readable in both themes */
+      .sidebar button[z-button][zType="secondary"] {
+        /* subtle surface highlight and left accent */
+        background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)) !important;
+        color: var(--text) !important;
+        font-weight: 700;
+        border-radius: 8px;
+        box-shadow: none !important;
+        border: 1px solid transparent !important;
+        padding-left: 14px;
+        position: relative;
+      }
+      /* left accent strip */
+      .sidebar button[z-button][zType="secondary"]::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 6px;
+        bottom: 6px;
+        width: 4px;
+        background: var(--accent) ;
+        border-radius: 4px;
+      }
+
+      /* Dark-theme specific adjustments for selected sidebar button (better contrast) */
+      body.dark-theme .sidebar button[z-button][zType="secondary"],
+      [data-theme="dark"] .sidebar button[z-button][zType="secondary"],
+      .dark-theme .sidebar button[z-button][zType="secondary"] {
+        background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)) !important;
+        color: var(--text) !important;
+        box-shadow: 0 6px 16px rgba(2,6,23,0.35);
+      }
+
+      /* Table surfaces in dark mode */
+      .elegant-table tbody tr td,
+      .elegant-table tbody tr th {
+        background: transparent;
+        color: var(--text);
+      }
+      body.dark-theme .elegant-table thead th {
+        color: var(--muted);
+      }
+      /* subtle row highlight consistent with dark theme */
+      body.dark-theme .elegant-table tbody tr:hover {
+        background: rgba(255,255,255,0.02) !important;
+      }
+
+      /* Inputs and form fields: softer in dark */
+      input, textarea, select, z-select, .z-input {
+        background: var(--card-bg) !important;
+        color: var(--text) !important;
+        border: 1px solid var(--border) !important;
+      }
+
+      /* Keep popovers matching surface */
+      z-popover, .z-popover {
+        background: var(--card-bg) !important;
+        color: var(--text) !important;
+        border: 1px solid var(--border) !important;
+      }
+    </style>
